@@ -1,0 +1,27 @@
+{
+  "name": "smart-screen_back-end",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alwin12/smart-screen_back-end.git"
+  },
+  "author": "Alwin",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/alwin12/smart-screen_back-end/issues"
+  },
+  "homepage": "https://github.com/alwin12/smart-screen_back-end#readme",
+  "devDependencies": {
+    "nodemon": "^1.18.4"
+  },
+  "dependencies": {
+    "cors": "^2.8.4",
+    "express": "^4.16.3",
+    "socket.io": "^2.1.1"
+  }
+}

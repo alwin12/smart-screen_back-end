@@ -23,25 +23,25 @@ socketioAuth(io, { authenticate, postAuthenticate});
 
  }
 
+
 function postAuthenticate(client){
 
  //emit messages
 
+ client.on('lecture',(data)=>{
+   console.log(data)
+ })
+
+
+
 
 }
 
-//  io.on('connection',(client)=>{
-//
-// client.on("hello",(data)=>{
-//
-// console.log(data)
-//
-// })
-//  })
+
 
 
 let client  ={
-  usernamme:'302',
+  username:'302',
   password:'302302'
 }
 

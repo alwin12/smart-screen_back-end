@@ -1,19 +1,52 @@
 
-var app = require('express')();
-var server = require ('http').Server(app);
-var io = require('socket.io')(server);
+const app = require('express')();
+const server = require ('http').Server(app);
+const io = require('socket.io')(server);
 const socketioAuth = require("socketio-auth");
-//const moment = require('moment');
+const bodyParser = require('body-parser');
 const schedule = require('node-schedule');
-var CronJob = require('cron').CronJob;
+const CronJob = require('cron').CronJob;
+const cors = require('cors');
+const _ = require('lodash');
 
 
 const {authenticate} = require('./socket-server/socketAuth')
 const {timeTableEmitter} = require('./socket-server/eventEmitter')
+const {Staff} = require('./db/models/Staff')
 const {dayFinder,getDay} = require('./utils/dateTime')
 
 
+app.use(bodyParser.json());
+app.use (cors())
 socketioAuth(io, { authenticate, postAuthenticate});
+
+
+app.post('/staff',(req,res)=>{
+
+  let body = _.pick(req.body,['email','password']);
+
+
+ let staff = new Staff(body);
+
+   staff.save().then(()=>{
+     
+
+    return staff.generateAuthToken()
+
+
+  }).then((token)=>{
+
+      res.header('x-auth',token).send(staff);
+
+  }).catch(e=>{
+     res.status(404).send(e);
+   })
+
+
+
+})
+
+
 
 
 let dayAndLoc = {
@@ -21,13 +54,6 @@ let dayAndLoc = {
 }
 
 function postAuthenticate(client){
-
- //   var j = schedule.scheduleJob({hour: 00, minute: 10, dayOfWeek: getDay()},()=>{
- //
- //
- //     timeTableEmitter(client,dayAndLoc);
- //
- // });
 
  var job = new CronJob('43 12 * * 1-6', ()=> {
 

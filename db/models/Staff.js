@@ -1,6 +1,7 @@
 const {mongoose} = require('../mongoose.js');
 const validator = require('validator')
 const jwt = require('jsonwebtoken')
+const bcrypt = require('bcryptjs')
 const _ = require ('lodash')
 
 const StaffSchema = new mongoose.Schema({
@@ -61,6 +62,91 @@ StaffSchema.methods.generateAuthToken = function(password){
   })
 
 }
+StaffSchema.statics.findByToken = function(token){
+
+  let staff = this;
+  let decoded;
+
+ try {
+  decoded = jwt.verify(token,'abc123')
+}
+catch(e){
+return Promise.reject('not verified')
+
+}
+
+return staff.findOne({
+
+  '_id':decoded._id,
+  'tokens.token':token,
+  'tokens.access':'auth'
+})
+
+};
+
+StaffSchema.pre('save', function(next){
+
+
+ let staff = this;
+   if(staff.isModified('password')){
+
+     bcrypt.genSalt(10, (err,salt)=>{
+
+  bcrypt.hash(staff.password,salt,(err,hash)=>{
+
+
+    staff.password = hash;
+    next();
+  })
+
+     })
+
+   }
+   else {
+     next();
+   }
+
+  })
+
+  StaffSchema.statics.findByCredentials = function(email,password){
+
+    let staff = this;
+
+   return  staff.findOne({
+      email
+    }).then((staff)=>{
+      if(!staff){
+        return Promise.reject();
+      }
+
+  return new Promise((resolve,reject)=>{
+
+     bcrypt.compare(password,staff.password,(err,res)=>{
+
+       if(res){
+         resolve(staff);
+           } else {
+         reject();
+          }
+        })
+      })
+    })
+
+  }
+
+StaffSchema.methods.removeToken = function(token){
+
+  var user = this;
+  return user.update({
+    $pull:{  //pull is used to delete
+      tokens:{
+       token
+      }
+    }
+
+  })
+}
+
 
 const Staff = mongoose.model("Staff",StaffSchema);
 

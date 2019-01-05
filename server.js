@@ -11,6 +11,7 @@ const _ = require('lodash');
 
 
 const {authenticate} = require('./socket-server/socketAuth')
+const {authMiddleware} = require('./middleware/authMiddleware')
 const {timeTableEmitter} = require('./socket-server/eventEmitter')
 const {Staff} = require('./db/models/Staff')
 const {dayFinder,getDay} = require('./utils/dateTime')
@@ -21,7 +22,7 @@ app.use (cors())
 socketioAuth(io, { authenticate, postAuthenticate});
 
 
-app.post('/staff',(req,res)=>{
+app.post('/staff/register',(req,res)=>{
 
   let body = _.pick(req.body,['email','password']);
 
@@ -29,14 +30,21 @@ app.post('/staff',(req,res)=>{
  let staff = new Staff(body);
 
    staff.save().then(()=>{
-     
+
 
     return staff.generateAuthToken()
 
 
   }).then((token)=>{
 
-      res.header('x-auth',token).send(staff);
+    data = {
+         staff:staff,
+         token: token
+
+    }
+    res.status(200).send(data);
+
+      //res.header('x-auth',token).send(staff);
 
   }).catch(e=>{
      res.status(404).send(e);
@@ -47,6 +55,67 @@ app.post('/staff',(req,res)=>{
 })
 
 
+
+app.get('/staff/home',authMiddleware,(req,res)=>{
+
+ data =  {
+   staff: req.staff,
+   token: req.token
+ }
+  //res.status(200).send(req.staff);
+
+
+})
+app.post('/staff/timetable',authMiddleware,(req,res)=>{
+
+
+   data =  {
+     staff: req.staff,
+     token: req.token,
+     timetable: {name:'lecture101'}
+   }
+
+   res.status(200).send(data);
+
+
+
+
+})
+app.post('/signin',(req,res)=>{
+
+ let body = _.pick(req.body,['email','password'])
+
+  Staff.findByCredentials(body.email,body.password).then((staff)=>{
+
+
+   return staff.generateAuthToken().then((token)=>{
+
+     data ={
+       staff:staff,
+       token:token
+     }
+
+     //res.header('x-auth',token).send(staff);
+     res.status(200).send(data)
+
+
+   })
+
+  }).catch(e=>{
+    res.status(400).send();
+  })
+
+})
+
+app.delete('/staff/signout',authMiddleware,(req,res)=>{
+
+   req.staff.removeToken(req.token).then(()=>{
+     res.status(200).send();
+   }).catch(e=>{
+     res.status(400).send();
+   })
+
+})
 
 
 let dayAndLoc = {

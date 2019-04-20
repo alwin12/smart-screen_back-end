@@ -4,7 +4,9 @@ const {Staff} = require('../db/models/Staff')
 let authMiddleware =  (req,res,next) =>{
 
   //let token = req.header('x-auth');
-let token = req.body.token
+    let token = req.body.token || req.header('x-auth')
+   console.log(req.header)
+
 
   Staff.findByToken(token).then((staff)=>{
     if (!staff){

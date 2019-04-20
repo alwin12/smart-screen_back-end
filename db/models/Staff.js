@@ -34,6 +34,10 @@ const StaffSchema = new mongoose.Schema({
     token:{
       type:String,
       required:true
+    },
+    pin:{
+      type:Number,
+      default:process.env.PIN
     }
 
     }]
@@ -133,6 +137,21 @@ StaffSchema.pre('save', function(next){
     })
 
   }
+
+  StaffSchema.statics.ConfigPinAuth = function(email,pin){
+    let staff = this;
+
+     return staff.findOne({email:email}).then((staff)=>{
+       if(staff){
+         resolve(staff)
+       }
+       else {
+         reject()
+       }
+     })
+
+  }
+
 
 StaffSchema.methods.removeToken = function(token){
 

@@ -22,7 +22,7 @@ const lectureSchema = new mongoose.Schema({
 lectureSchema.statics.findByLocation = function(daysTimetable){
 
 let Lecture = this ;
- console.log(daysTimetable[0])
+ 
 
   return Lecture.find({
 

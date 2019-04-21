@@ -225,7 +225,7 @@ io.use((socket,next)=>{
 
 
   jwt.verify(socket.handshake.query.token,process.env.CONFIG_SALT,(err,decoded)=>{
-    
+
 
    console.log('err',err)
 
@@ -238,8 +238,6 @@ io.use((socket,next)=>{
 
   })
 
-
-
 }else {
   next(new Error('Authentication error'));
 }
@@ -249,8 +247,13 @@ io.use((socket,next)=>{
  //Object.assign(Socket,socket)
   console.log('client connected')
 
-timeTableEmitter(socket,dayAndLoc);
-advertsEmitter(io,socket,cloudinary);
+  
+
+    timeTableEmitter(socket,dayAndLoc);
+    advertsEmitter(io,socket,cloudinary);
+
+
+
 
 app.post('/staff/upload',[authMiddleware,upload],(req,res)=>{
 

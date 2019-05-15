@@ -14,19 +14,25 @@ const CronJob = require('cron').CronJob;
 const cors = require('cors');
 const _ = require('lodash');
 require('dotenv').config();
-
+const excelToJson = require('convert-excel-to-json');
+const fs = require('fs')
 
 const {authenticate} = require('./socket-server/socketAuth')
 const {authMiddleware} = require('./middleware/authMiddleware')
 const {TimeTable} = require('./db/models/Timetable')
-const {Lecture} = require('./db/models/lecture.js')
+
 const {Lecturehall} = require('./db/models/lectureHall.js')
 const {timeTableEmitter,advertsEmitter,timeTableListener} = require('./socket-server/eventEmitter')
 const {Staff} = require('./db/models/Staff')
 const {dayFinder,getDay} = require('./utils/dateTime')
 const {generateAuthToken,verifyToken} = require('./utils/authToken')
+const {LecturesByCampus} = require('./utils/filterTimetable')
+const {addTimetable} = require('./utils/addTimetable')
 
 const emit = false;
+
+
+
 
 let Socket = {}
 app.use(bodyParser.json());
@@ -47,6 +53,15 @@ const upload = multer({
 }).single('image')
 
 
+const fileStorage = multer.diskStorage({
+  destination:'./timetableFile',
+  filename: function(req,file,cb){
+    cb(null,"timetable.xlsx")
+  }
+})
+ const fileUpload = multer({
+   storage:fileStorage
+ }).single('timetableSheet')
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_NAME,
@@ -54,6 +69,7 @@ cloudinary.config({
   api_secret:process.env.CLOUDINARY_API_SECRET
 
 })
+
 
 
 app.post('/staff/register',(req,res)=>{
@@ -211,6 +227,73 @@ cloudinary.v2.api.resources().then(images => res.status(200).send(images))
 
 })
 
+app.post('/staff/timetable/upload',fileUpload,(req,res)=>{
+
+
+
+    console.log('tt',req.file)
+
+      const result = excelToJson({
+        source:fs.readFileSync(`./timetableFile/${req.file.filename}`),
+        sheets:[{name:'2019Activities&Locations 4-4-19',
+        columnToKey:{
+
+
+A:"Locations",
+B:"NameOfLocations",
+C: "Name",
+D: "Description",
+E: "Size",
+F: "Duration",
+G: "ActivityDates",
+H: "StartDay",
+I: "StartTime",
+J: "FinishTime",
+K: "NameOfStaff",
+
+},
+
+      }]
+     })
+
+    //   console.log(result["2019Activities&Locations 4-4-19"])
+
+    let filteredTimetableData = LecturesByCampus(result["2019Activities&Locations 4-4-19"],'MTH All')
+    //let allLectures = getAllLectures(filteredTimetableData)
+
+       //console.log(filteredTimetableData.length)
+
+        //populateDatabases(filteredTimetableData)
+
+        addTimetable(filteredTimetableData)
+
+
+
+          res.status(200).send({result})
+
+
+
+})
+
+app.post('/staff/upload',[authMiddleware,upload],(req,res)=>{
+
+    console.log('req',req.file);
+
+ cloudinary.uploader.upload(req.file.path).then((data)=>{
+
+
+    advertsEmitter(io,cloudinary);
+
+   res.status(200).send({"adverts":'success'});
+
+ }).catch(e=>{
+
+res.status(400).send(e);
+
+ })
+
+})
+
 
 let dayAndLoc = {
   day:dayFinder(getDay())
@@ -247,41 +330,18 @@ io.use((socket,next)=>{
  //Object.assign(Socket,socket)
   console.log('client connected')
 
-  
+
 
     timeTableEmitter(socket,dayAndLoc);
-    advertsEmitter(io,socket,cloudinary);
+
+    advertsEmitter(io,cloudinary);
 
 
 
 
-app.post('/staff/upload',[authMiddleware,upload],(req,res)=>{
 
-    console.log('req',req.file);
 
- cloudinary.uploader.upload(req.file.path).then((data)=>{
 
-   //res.status(200).send(result);
-
-//   return cloudinary.v2.api.resources({ type: 'upload' })
-//
-// }).then((images)=>{
-//
-// // client.emit('adverts',{
-// //   images
-// // })
-//   console.log('images')
-
-    advertsEmitter(io,socket,cloudinary);
-   res.status(200).send({'success':'success'});
-
- }).catch(e=>{
-
-res.status(400).send(e);
-
- })
-
-})
 
 
 var job = new CronJob('43 12 * * 1-6', ()=> {
@@ -312,7 +372,7 @@ var job = new CronJob('43 12 * * 1-6', ()=> {
 
 
 
-let PORT = process.env.port || 3002
+let PORT = process.env.port || 3001
 
 server.listen(PORT, ()=> {
 console.log( `listening to ${PORT}`) ;

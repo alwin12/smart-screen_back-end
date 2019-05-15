@@ -4,13 +4,12 @@ const jwt = require('jsonwebtoken');
 
   const LecturehallSchema = new mongoose.Schema({
 
-     building: {
-       type:String,
-       required:true
-     },
-     lectureHall: {
-      type:String
+
+     room: {
+      type:String,
+      unique:true
     },
+
 
   })
 LecturehallSchema.statics.findByCredentials = function(building,lectureHall){
@@ -19,8 +18,8 @@ let LectureHall = this;
 
 
 return LectureHall.findOne({
-  building,
-  lectureHall
+
+  room
 })
 
 
@@ -70,7 +69,7 @@ return LectureHall.findOne({
 
 
 
-let Lecturehall = mongoose.models.lecturehall || mongoose.model('lecturehall', LecturehallSchema);
+let Lecturehall = mongoose.models.lectureRoom || mongoose.model('lectureRoom', LecturehallSchema);
 
 
 

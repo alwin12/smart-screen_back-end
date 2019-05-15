@@ -1,7 +1,8 @@
 
 //const {data}= require('../sampleData.js')
-const {TimeTable} = require('../db/models/Timetable')
-const {Lecture} = require('../db/models/lecture.js')
+const {TimeTable} = require('../db/models/TimeTable')
+
+const {LectureHall} = require('../db/models/LectureHall.js')
 
 
 
@@ -12,11 +13,16 @@ const timeTableEmitter = (client,dayAndLoc)=>{
    let lectures = {};
 //  data.forEach((data)=>{if (data.day = dayAndLoc.day){Lectures = data.lecture; }});
 
+  LectureHall.findByName(room).then((room)=>{
 
-TimeTable.findLectures(dayAndLoc.day).then((daysTimetable)=>{
 
 
- Lecture.findByLocation(daysTimetable).then((timetable)=>{
+  })
+
+TimeTable.findLectures(room).then((roomTimetable)=>{
+
+
+ Lecture.findByDay(roomTimetable).then((timetable)=>{
 
 
   client.emit('timetable',{timetable})
@@ -34,7 +40,7 @@ TimeTable.findLectures(dayAndLoc.day).then((daysTimetable)=>{
 }
 
 
-const advertsEmitter = (io,client,cloudinary)=>{
+const advertsEmitter = (io,cloudinary)=>{
 
 
 cloudinary.v2.api.resources().then((adverts)=>{

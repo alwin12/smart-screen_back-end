@@ -1,76 +1,56 @@
-
-const {mongoose} = require('../mongoose')
-const {Lecture} = require('./lecture.js')
-
- const TimetableSchema = new mongoose.Schema({
-
-      day: {
-
-       type:String,
-       required:true,
-
-     },
-     lectures: [{type:mongoose.Schema.Types.ObjectId,ref:'Lecture'}]
-
-
-     }
+const {mongoose} = require('../mongoose.js')
 
 
 
- )
+const timetableSchema = new mongoose.Schema({
+
+    day:{type:String,required:true},
+    room:{type:String,required:true},
+    code:{type:String,required:false},
+    name:{type:String,required:false},
+    staffs:{type:String},
+    startTime:{type: String,required:true},
+    endTime:{type:String,required:true},
+    activityDate: {type:String,required:true}
 
 
 
- TimetableSchema.statics.findLectures = function(day){
-
-   let Timetable = this;
 
 
- return TimeTable.find({
 
-   day:'monday'  //day
+})
+
+timetableSchema.statics.findByLocation = function(RoomTimetable,day){
+
+let Timetable = this;
+
+
+  return Timetable.find({
+
+   '_id': {
+     $in: [0].RoomTimetable.lectures
+
+
+   },
+   'day': day
+
  })
 
- }
 
 
-const TimeTable = mongoose.model('TimeTable',TimetableSchema);
 
 
- module.exports = {TimeTable:TimeTable}
+
+}
+
+   //delete mongoose.connection.models['lecture']
 
 
-// sample data
+//const Lecture = mongoose.model('Lecture',lectureSchema);
 
-// let lecture1 = new Lecture(
-//   {
-//     building: 01,
-//     lectureHall:02,
-//     lecture:'intepretation',
-//     lecturerName:'Scott Valpied',
-//     startTime: '10:00',
-//     endTime: '12:00'
-//   })
-//
-//
-//   let lecture2 = new Lecture(
-//     {
-//       building: 01,
-//       lectureHall:02,
-//       lecture:'systems modelling',
-//       lecturerName:'Scott Valpied',
-//       startTime: 'sd',
-//       endTime: 'dd'
-//     }
-//
-// )
-//
-//
-//
-//  let timetable1 = new TimeTable({
-//
-//    day:'monday',
-//    lectures:[lecture1._id,lecture2._id]
-//
-//  })
-// lecture2.save().then(()=>{timetable1.save()})
+const TimeTable =  mongoose.models.table ||mongoose.model('table', timetableSchema);
+
+
+module.exports = {
+  TimeTable
+}

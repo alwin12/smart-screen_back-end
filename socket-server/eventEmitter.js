@@ -1,41 +1,22 @@
 
 //const {data}= require('../sampleData.js')
-const {TimeTable} = require('../db/models/TimeTable')
+const {TimeTable} = require('../db/models/Timetable')
 
 const {LectureHall} = require('../db/models/LectureHall.js')
 
 
 
-const timeTableEmitter = (client,dayAndLoc)=>{
+const timeTableEmitter = (client,dayAndLoc,room)=>{
 
+ console.log(dayAndLoc.day,room)
+ TimeTable.find({day:dayAndLoc.day,room:room}).then((data)=>{
 
-
-   let lectures = {};
-//  data.forEach((data)=>{if (data.day = dayAndLoc.day){Lectures = data.lecture; }});
-
-  LectureHall.findByName(room).then((room)=>{
-
-
-
-  })
-
-TimeTable.findLectures(room).then((roomTimetable)=>{
-
-
- Lecture.findByDay(roomTimetable).then((timetable)=>{
-
-
-  client.emit('timetable',{timetable})
+      
+       client.emit("timetable",data);
 
  })
 
 
-
-}).catch(e=>{
-
-  console.log(e);
-
-})
 
 }
 
@@ -48,12 +29,12 @@ cloudinary.v2.api.resources().then((adverts)=>{
  console.log('adverts emiited')
 
   io.emit('adverts',{
+
     adverts
   })
 
 })
-
-
+ //
 }
 
 const timeTableListener = (client,dayAndLoc) =>{
@@ -98,4 +79,19 @@ console.log('emmiting after adding')
 
 }
 
-module.exports = {timeTableEmitter,advertsEmitter,timeTableListener}
+ function getRooms(client){
+
+console.log('room called')
+ TimeTable.find().then((data)=>{
+
+
+
+    client.emit('rooms',{data:data})
+
+ })
+
+
+
+}
+
+module.exports = {timeTableEmitter,advertsEmitter,timeTableListener,getRooms}

@@ -22,7 +22,7 @@ const {authMiddleware} = require('./middleware/authMiddleware')
 const {TimeTable} = require('./db/models/Timetable')
 
 const {Lecturehall} = require('./db/models/lectureHall.js')
-const {timeTableEmitter,advertsEmitter,timeTableListener} = require('./socket-server/eventEmitter')
+const {timeTableEmitter,advertsEmitter,timeTableListener,getRooms} = require('./socket-server/eventEmitter')
 const {Staff} = require('./db/models/Staff')
 const {dayFinder,getDay} = require('./utils/dateTime')
 const {generateAuthToken,verifyToken} = require('./utils/authToken')
@@ -167,44 +167,44 @@ app.post('/login',(req,res)=>{
   })
 
 })
-app.post('/config',(req,res)=>{
-
-    let body = _.pick(req.body,['room','pin'])
-
-    console.log(body);
-
-
-
-  if(body.pin === process.env.PIN){
-
-    let token =  generateAuthToken(body.pin,process.env.CONFIG_SALT)
-
-
-
-    res.status(200).send({token:token})
-
-  }
-
-
-  else {
-
-    res.status(400).send();
-  }
-
-
-    // Staff.ConfigPinAuth(body.room,body.pin).then((staff)=>{
-    //
-    //   console.log(staff)
-    //
-    //   res.status(200).send({hi:'hi'})
-    //
-    // }).catch(e=>{
-    //
-    // })
-
-
-
-})
+// app.post('/config',(req,res)=>{
+//
+//     let body = _.pick(req.body,['room','pin'])
+//
+//     console.log(body);
+//
+//
+//
+//   if(body.pin === process.env.PIN){
+//
+//     let token =  generateAuthToken(body.pin,process.env.CONFIG_SALT)
+//
+//
+//
+//     res.status(200).send({token:token})
+//
+//   }
+//
+//
+//   else {
+//
+//     res.status(400).send();
+//   }
+//
+//
+//     // Staff.ConfigPinAuth(body.room,body.pin).then((staff)=>{
+//     //
+//     //   console.log(staff)
+//     //
+//     //   res.status(200).send({hi:'hi'})
+//     //
+//     // }).catch(e=>{
+//     //
+//     // })
+//
+//
+//
+// })
 
 
 
@@ -300,41 +300,90 @@ let dayAndLoc = {
 }
 
 
-io.use((socket,next)=>{
+// io.use((socket,next)=>{
+//
+//   if(socket.handshake.query && socket.handshake.query.token){
+//
+//
+//   jwt.verify(socket.handshake.query.token,process.env.CONFIG_SALT,(err,decoded)=>{
+//
+//
+//    console.log('err',err)
+//
+//  if(err) return next(new Error('authentication error'))
+//
+//
+//   socket.decoded = decoded
+//   next()
+//
+//
+//   })
+//
+// }
+//
+// else {
+//   next(new Error('Authentication error'));
+// }
+//
+// }).
 
 
 
-  if(socket.handshake.query && socket.handshake.query.token){
+io.on('connection',(socket)=>{
 
 
-  jwt.verify(socket.handshake.query.token,process.env.CONFIG_SALT,(err,decoded)=>{
+ app.post("/config",(req,res)=>{
+
+   console.log(req.body);
+   if(req.body.pin==process.env.PIN){
+
+ timeTableEmitter(io,dayAndLoc,req.body.room);
 
 
-   console.log('err',err)
+   res.status(200).send({})
 
- if(err) return next(new Error('authentication error'))
+   }
+   else{
+
+     console.log('else')
+//socket.emit('config',{failed:'true'})
 
 
-  socket.decoded = decoded
-  next()
+res.status(400).send({failed:"true"})
+
+   }
 
 
-  })
 
-}else {
-  next(new Error('Authentication error'));
-}
+ })
 
-}).on('connection',(socket)=>{
+//  socket.on("config",(data)=>{
+//
+//    if(data.pin == process.env.PIN){
+//
+// timeTableEmitter(socket,dayAndLoc,data.room);
+//
+//
+//    }
+//    else {
+//
+//
+//    socket.emit('config',{failed:'true'})
+//
+//
+//
+//
+//  })
 
- //Object.assign(Socket,socket)
   console.log('client connected')
 
 
 
-    timeTableEmitter(socket,dayAndLoc);
+    //timeTableEmitter(socket,dayAndLoc);
 
     advertsEmitter(io,cloudinary);
+
+      getRooms(socket)
 
 
 

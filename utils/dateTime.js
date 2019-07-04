@@ -9,6 +9,8 @@ const getDay = () =>{
 
  const dayFinder = (dayInNumeric)=>{
 
+   console.log(dayInNumeric)
+
    switch(dayInNumeric)
    {
   case 1: return 'monday'

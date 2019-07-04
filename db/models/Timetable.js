@@ -35,12 +35,6 @@ let Timetable = this;
    'day': day
 
  })
-
-
-
-
-
-
 }
 
    //delete mongoose.connection.models['lecture']

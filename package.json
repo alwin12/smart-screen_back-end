@@ -42,6 +42,6 @@
     "socket.io": "^2.1.1",
     "socketio-auth": "^0.1.1",
     "socketio-jwt": "^4.5.0",
-    "validator": "^10.10.0"
+    "validator": "^13.7.0"
   }
 }
